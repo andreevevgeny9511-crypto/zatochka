@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Заточка в Кемерово — обратный отсчёт</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0713;
+    --accent: #ff2e63;
+    --accent2: #7b2ff7;
+    --gold: #ffd166;
+    --text: #f5f2fa;
+    --muted: #a89fc0;
+    --card: rgba(255,255,255,.05);
+    --border: rgba(255,255,255,.12);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { height:100%; }
+  body {
+    font-family:'Manrope',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    overflow-x:hidden;
+    position:relative;
+    padding:40px 16px;
+  }
+
+  /* Animated background */
+  .bg-glow {
+    position:fixed; inset:0; z-index:-2; pointer-events:none;
+    background:
+      radial-gradient(600px 600px at 15% 20%, rgba(123,47,247,.28), transparent 60%),
+      radial-gradient(700px 700px at 85% 75%, rgba(255,46,99,.22), transparent 60%),
+      radial-gradient(500px 500px at 70% 10%, rgba(255,209,102,.10), transparent 60%);
+    animation:pulse 8s ease-in-out infinite alternate;
+  }
+  @keyframes pulse { from{opacity:.7} to{opacity:1.15} }
+
+  .stars { position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden; }
+  .star {
+    position:absolute; width:3px; height:3px; border-radius:50%;
+    background:#fff; opacity:.5; animation:twinkle linear infinite;
+  }
+  @keyframes twinkle {
+    0%,100%{opacity:.1; transform:scale(.8)}
+    50%{opacity:.8; transform:scale(1.3)}
+  }
+
+  header { text-align:center; margin-bottom:36px; }
+  .band {
+    display:inline-block;
+    font-family:'Unbounded',sans-serif;
+    font-weight:900;
+    font-size:clamp(28px,6vw,56px);
+    letter-spacing:.04em;
+    background:linear-gradient(90deg,var(--accent),var(--gold),var(--accent2),var(--accent));
+    background-size:300% 100%;
+    -webkit-background-clip:text; background-clip:text;
+    color:transparent;
+    animation:shine 6s linear infinite;
+    text-transform:uppercase;
+  }
+  @keyframes shine { to{background-position:300% 0} }
+  .subtitle {
+    margin-top:10px;
+    color:var(--muted);
+    font-size:clamp(15px,2.4vw,20px);
+    font-weight:600;
+  }
+  .subtitle .date-pill {
+    display:inline-block;
+    margin-left:8px;
+    padding:4px 14px;
+    border:1px solid var(--border);
+    border-radius:999px;
+    background:var(--card);
+    color:var(--gold);
+    white-space:nowrap;
+  }
+
+  /* Countdown */
+  .countdown {
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    justify-content:center;
+    margin-bottom:44px;
+  }
+  .unit {
+    width:clamp(90px,20vw,150px);
+    padding:22px 8px 18px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:20px;
+    backdrop-filter:blur(10px);
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+    transition:transform .3s ease, box-shadow .3s ease;
+  }
+  .unit:hover { transform:translateY(-6px); box-shadow:0 12px 40px rgba(255,46,99,.25); }
+  .unit::before {
+    content:"";
+    position:absolute; top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+  }
+  .num {
+    font-family:'Unbounded',sans-serif;
+    font-weight:900;
+    font-size:clamp(30px,7vw,52px);
+    line-height:1;
+    font-variant-numeric:tabular-nums;
+    background:linear-gradient(180deg,#fff,#cbb8ff);
+    -webkit-background-clip:text; background-clip:text;
+    color:transparent;
+  }
+  .label {
+    margin-top:10px;
+    font-size:13px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:800;
+  }
+  .flip { animation:flip .5s ease; }
+  @keyframes flip {
+    0%{transform:rotateX(0)} 50%{transform:rotateX(12deg); filter:brightness(1.4)} 100%{transform:rotateX(0)}
+  }
+
+  .finished {
+    font-family:'Unbounded',sans-serif;
+    font-size:clamp(24px,5vw,44px);
+    font-weight:900;
+    color:var(--gold);
+    text-align:center;
+    margin-bottom:44px;
+    text-shadow:0 0 30px rgba(255,209,102,.5);
+  }
+
+  /* Ticket upload */
+  .ticket-card {
+    width:min(520px,94vw);
+    background:var(--card);
+    border:1px dashed var(--border);
+    border-radius:24px;
+    padding:30px 26px;
+    text-align:center;
+    backdrop-filter:blur(10px);
+    position:relative;
+    transition:border-color .3s, background .3s;
+  }
+  .ticket-card.dragover {
+    border-color:var(--accent);
+    background:rgba(255,46,99,.08);
+  }
+  .ticket-title {
+    font-family:'Unbounded',sans-serif;
+    font-weight:700;
+    font-size:20px;
+    margin-bottom:6px;
+    color:var(--text);
+  }
+  .ticket-hint { color:var(--muted); font-size:14px; margin-bottom:20px; }
+  .upload-btn {
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:'Manrope',sans-serif;
+    font-weight:800; font-size:16px;
+    color:#fff;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    border:none; border-radius:999px;
+    padding:14px 32px;
+    cursor:pointer;
+    box-shadow:0 8px 28px rgba(123,47,247,.4);
+    transition:transform .2s, box-shadow .2s;
+  }
+  .upload-btn:hover { transform:translateY(-3px) scale(1.03); box-shadow:0 14px 38px rgba(255,46,99,.45); }
+  .upload-btn:active { transform:scale(.97); }
+  .upload-btn svg { width:20px; height:20px; }
+  #fileInput { display:none; }
+
+  .file-info {
+    margin-top:20px;
+    display:none;
+    align-items:center;
+    gap:14px;
+    background:rgba(255,255,255,.06);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:14px 18px;
+    text-align:left;
+    animation:appear .4s ease;
+  }
+  @keyframes appear { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
+  .file-info.show { display:flex; }
+  .pdf-icon {
+    flex-shrink:0;
+    width:46px; height:46px;
+    border-radius:12px;
+    background:linear-gradient(135deg,#ff2e63,#7b2ff7);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:900; font-size:11px; font-family:'Unbounded',sans-serif;
+  }
+  .file-meta { flex:1; min-width:0; }
+  .file-name {
+    font-weight:800; font-size:15px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .file-size { color:var(--muted); font-size:13px; margin-top:2px; }
+  .file-actions { display:flex; gap:8px; }
+  .icon-btn {
+    width:38px; height:38px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:transparent;
+    color:var(--text);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .2s, transform .2s;
+  }
+  .icon-btn:hover { background:rgba(255,255,255,.1); transform:scale(1.08); }
+  .icon-btn svg { width:18px; height:18px; }
+
+  footer {
+    margin-top:40px;
+    color:var(--muted);
+    font-size:13px;
+    text-align:center;
+  }
+  footer .heart { color:var(--accent); }
+</style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="stars" id="stars"></div>
+
+  <header>
+    <div class="band">⚡ Заточка ⚡</div>
+    <p class="subtitle">Концерт в Кемерово<span class="date-pill">20 декабря</span></p>
+  </header>
+
+  <div class="countdown" id="countdown" aria-live="polite">
+    <div class="unit"><div class="num" id="days">--</div><div class="label">дней</div></div>
+    <div class="unit"><div class="num" id="hours">--</div><div class="label">часов</div></div>
+    <div class="unit"><div class="num" id="minutes">--</div><div class="label">минут</div></div>
+    <div class="unit"><div class="num" id="seconds">--</div><div class="label">секунд</div></div>
+  </div>
+
+  <section class="ticket-card" id="dropZone">
+    <h2 class="ticket-title">🎫 Билет для Жени</h2>
+    <p class="ticket-hint">Загрузи PDF-билет — он сохранится в этом браузере</p>
+    <button class="upload-btn" id="uploadBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Выбрать PDF
+    </button>
+    <input type="file" id="fileInput" accept="application/pdf">
+
+    <div class="file-info" id="fileInfo">
+      <div class="pdf-icon">PDF</div>
+      <div class="file-meta">
+        <div class="file-name" id="fileName">—</div>
+        <div class="file-size" id="fileSize">—</div>
+      </div>
+      <div class="file-actions">
+        <button class="icon-btn" id="openBtn" title="Открыть билет" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </button>
+        <button class="icon-btn" id="removeBtn" title="Удалить" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <footer>Обратный отсчёт до концерта <span class="heart">♥</span> сделай громче, 20 декабря будет жарко</footer>
+
+<script>
+(function(){
+  // ---- Stars ----
+  const starsBox = document.getElementById('stars');
+  for (let i = 0; i < 70; i++) {
+    const s = document.createElement('span');
+    s.className = 'star';
+    s.style.left = Math.random()*100 + '%';
+    s.style.top = Math.random()*100 + '%';
+    s.style.animationDuration = (2 + Math.random()*4) + 's';
+    s.style.animationDelay = (Math.random()*4) + 's';
+    starsBox.appendChild(s);
+  }
+
+  // ---- Countdown ----
+  function nextConcertDate() {
+    const now = new Date();
+    let target = new Date(now.getFullYear(), 11, 20, 19, 0, 0); // 20 декабря, 19:00
+    if (now > target) target = new Date(now.getFullYear()+1, 11, 20, 19, 0, 0);
+    return target;
+  }
+  const target = nextConcertDate();
+
+  const els = {
+    days: document.getElementById('days'),
+    hours: document.getElementById('hours'),
+    minutes: document.getElementById('minutes'),
+    seconds: document.getElementById('seconds')
+  };
+
+  function setVal(el, val) {
+    const str = String(val).padStart(2,'0');
+    if (el.textContent !== str) {
+      el.textContent = str;
+      el.classList.remove('flip');
+      void el.offsetWidth;
+      el.classList.add('flip');
+    }
+  }
+
+  function tick() {
+    const diff = target - new Date();
+    if (diff <= 0) {
+      document.getElementById('countdown').outerHTML =
+        '<div class="finished">🎸 СЕГОДНЯ КОНЦЕРТ! 🔥</div>';
+      clearInterval(timer);
+      return;
+    }
+    setVal(els.days, Math.floor(diff / 86400000));
+    setVal(els.hours, Math.floor(diff / 3600000) % 24);
+    setVal(els.minutes, Math.floor(diff / 60000) % 60);
+    setVal(els.seconds, Math.floor(diff / 1000) % 60);
+  }
+  tick();
+  const timer = setInterval(tick, 1000);
+
+  // ---- Ticket upload ("Билет для Жени") ----
+  const STORAGE_KEY = 'zatochka_zhenya_ticket';
+  const input = document.getElementById('fileInput');
+  const btn = document.getElementById('uploadBtn');
+  const drop = document.getElementById('dropZone');
+  const info = document.getElementById('fileInfo');
+  const nameEl = document.getElementById('fileName');
+  const sizeEl = document.getElementById('fileSize');
+  const openBtn = document.getElementById('openBtn');
+  const removeBtn = document.getElementById('removeBtn');
+  let currentUrl = null;
+
+  function fmtSize(bytes){
+    if (bytes < 1024) return bytes + ' Б';
+    if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' КБ';
+    return (bytes/1048576).toFixed(2) + ' МБ';
+  }
+
+  function showTicket(name, size, url){
+    nameEl.textContent = name;
+    sizeEl.textContent = fmtSize(size);
+    currentUrl = url;
+    info.classList.add('show');
+  }
+
+  function saveToStorage(file){
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          name: file.name, size: file.size, data: reader.result
+        }));
+      } catch(e) { console.warn('Не удалось сохранить билет локально:', e); }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function loadFromStorage(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const t = JSON.parse(raw);
+      showTicket(t.name, t.size, t.data);
+    } catch(e){ /* ignore */ }
+  }
+
+  function handleFile(file){
+    if (!file) return;
+    if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)) {
+      alert('Пожалуйста, выбери файл формата PDF 📄');
+      return;
+    }
+    if (currentUrl && currentUrl.startsWith('blob:')) URL.revokeObjectURL(currentUrl);
+    showTicket(file.name, file.size, URL.createObjectURL(file));
+    saveToStorage(file);
+  }
+
+  btn.addEventListener('click', () => input.click());
+  input.addEventListener('change', () => { handleFile(input.files[0]); input.value=''; });
+
+  ['dragenter','dragover'].forEach(ev =>
+    drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('dragover'); }));
+  ['dragleave','drop'].forEach(ev =>
+    drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('dragover'); }));
+  drop.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
+
+  openBtn.addEventListener('click', () => {
+    if (currentUrl) window.open(currentUrl, '_blank');
+  });
+
+  removeBtn.addEventListener('click', () => {
+    localStorage.removeItem(STORAGE_KEY);
+    if (currentUrl && currentUrl.startsWith('blob:')) URL.revokeObjectURL(currentUrl);
+    currentUrl = null;
+    info.classList.remove('show');
+  });
+
+  loadFromStorage();
+})();
+</script>
+</body>
+</html>
